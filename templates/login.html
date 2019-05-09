@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Log in to Blogz</h2>
+
+<form action="/login" method = 'POST'>
+    
+    Username: <input type = 'text' name = 'username' value = {{username}}><br>
+    Password: <input type = 'password' name = 'password'><br>
+    <input type = 'submit' value = 'Login'>
+
+</form>        
+
+<p>If you don't have an account, you may <a href="/signup">register</a></p>
+
+{% endblock %}

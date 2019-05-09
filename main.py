@@ -89,7 +89,7 @@ def newpost():
 
 #@app.route('/login', methods = ['POST'])
 #def login():
-# TODO finish the login route
+#return render_template('login.html', title = 'Login')
 
 #@app.route('/logout', methods = ['POST'])
 #def logout():
