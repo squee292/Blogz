@@ -25,12 +25,12 @@ class Blog(db.Model):
 #used for creating the user database
 class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    email = db.Column(db.String(120), unique = True)
+    username = db.Column(db.String(120), unique = True)
     password = db.Column(db.String(120))
     blogs = db.relationship('Blog', backref = 'owne')
 
-    def __init__(self, email, password):
-        self.email = email
+    def __init__(self, username, password):
+        self.username = username
         self.password = password
 
 
