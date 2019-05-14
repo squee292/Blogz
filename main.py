@@ -154,9 +154,12 @@ def login():
 
     return render_template('login.html', title = 'Login')
 
-#@app.route('/logout', methods = ['POST'])
-#def logout():
-# TODO finish the logout route
+#logout page
+@app.route('/logout', methods = ['POST'])
+def logout():
+    del session['username']
+    return redirect('/blog')
+
 
 
 
