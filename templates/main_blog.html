@@ -11,7 +11,11 @@
             <li>
                 <form action="/blog">
                     <h2><a href="./blog?id={{blog.id}}">{{blog.title}}</a></h2>
-                    <p>{{blog.body}}</p>
+                    <p>{{blog.body}}</p><br>
+                    <br>
+                    <br>
+                    <h5><p>Writen by.... <a href="./blog?userid={{blog.owner_id}}">{{blog.owner.username}}</a></p></h5>
+
                 </form>
                 <hr>
             </li>

@@ -52,7 +52,7 @@ def is_same(text1, text2):
 #redirect to login unless going to whitelisted page
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'signup', 'blogpage']
+    allowed_routes = ['login', 'signup', 'blogpage', 'index']
     if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
 
@@ -60,22 +60,25 @@ def require_login():
 @app.route('/')
 def index():
     users = User.query.order_by(User.id.desc()).all()
-    return render_template('main_blog.html', title = "Build a blog", users = users)
+    return render_template('index.html', title = "Blogz", users = users)
 
 #main page in the site
 @app.route('/blog')
 def blogpage():
     #path to open a blog on a seperate page
     blog_id = request.args.get('id')
+    user_id = request.args.get('userid')
     
-
     if (blog_id):
         blog = Blog.query.get(blog_id)
         return render_template('single_blog.html', blog = blog)
+    elif (user_id):
+        blogs = Blog.query.filter_by(owner_id = user_id).all()
+        return render_template('main_blog.html', title = 'Blog', blogs = blogs)
     else:
         #displaying all created blogs in order of newest to oldest
         blogs = Blog.query.order_by(Blog.id.desc()).all()
-        return render_template('main_blog.html' ,title = "Build a blog", blogs = blogs)
+        return render_template('main_blog.html' ,title = "Blogz", blogs = blogs)
 
 #new blog post page
 @app.route('/newpost', methods = ['POST', 'GET'])
