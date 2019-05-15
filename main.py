@@ -49,33 +49,32 @@ def is_same(text1, text2):
         return True
 
 
-#redirect to correct page if not on default
-#look up secret key
+#redirect to login unless going to whitelisted page
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'signup']
+    allowed_routes = ['login', 'signup', 'blogpage']
     if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
 
 #default page that loads when first going to the site
-#@app.route('/')
-#def index():
-    #blogs = Blog.query.order_by(Blog.id.desc()).all()
-    #return render_template('main_blog.html', title = "Build a blog", blogs = blogs)
+@app.route('/')
+def index():
+    users = User.query.order_by(User.id.desc()).all()
+    return render_template('main_blog.html', title = "Build a blog", users = users)
 
 #main page in the site
 @app.route('/blog')
 def blogpage():
     #path to open a blog on a seperate page
     blog_id = request.args.get('id')
-    owner = User.query.filter_by(username = session['username']).first()
+    
 
     if (blog_id):
         blog = Blog.query.get(blog_id)
         return render_template('single_blog.html', blog = blog)
     else:
         #displaying all created blogs in order of newest to oldest
-        blogs = Blog.query.order_by(Blog.id.desc(), owner = owner).all()
+        blogs = Blog.query.order_by(Blog.id.desc()).all()
         return render_template('main_blog.html' ,title = "Build a blog", blogs = blogs)
 
 #new blog post page
@@ -84,7 +83,7 @@ def newpost():
     if request.method == 'POST':
         title = request.form['blogtitle']
         body = request.form['blogtext']
-        owner = User.query.filter_by(username = session['username']).first
+        owner = User.query.filter_by(username = session['username']).first()
         title_error = ''
         body_error = ''
         error_count = 0
@@ -99,8 +98,8 @@ def newpost():
         if error_count > 0:
             return render_template('new_blog.html', title = 'New Blog Entry')
         #creating a new blog post
+        
         new_entry = Blog(title, body, owner)
-    
         db.session.add(new_entry)
         db.session.commit()
         url = "/blog?id=" + str(new_entry.id)
@@ -145,7 +144,7 @@ def signup():
             return redirect('/newpost')
         else:
             flash('Username already exists', 'error')
-            return render_template('signup.html', title = 'Signup')
+    return render_template('signup.html', title = 'Signup')
 
 #login page
 @app.route('/login', methods=['POST', 'GET'])
@@ -164,13 +163,10 @@ def login():
     return render_template('login.html', title = 'Login')
 
 #logout page
-@app.route('/logout', methods = ['POST'])
+@app.route('/logout')
 def logout():
     del session['username']
     return redirect('/blog')
-
-
-
 
 if __name__ == '__main__':
     app.run()
