@@ -1,10 +1,11 @@
-from flask import Flask, request, redirect, render_template, flash
+from flask import Flask, request, redirect, render_template, flash, session
 from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://Blogz:blogz@localhost:8889/Blogz'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+app.secret_key = 'r5;PZvCX*5_t6f'
 
 #creating the columns for my database
 
@@ -48,25 +49,33 @@ def is_same(text1, text2):
         return True
 
 
-
+#redirect to correct page if not on default
+#look up secret key
+@app.before_request
+def require_login():
+    allowed_routes = ['login', 'signup']
+    if request.endpoint not in allowed_routes and 'username' not in session:
+        return redirect('/login')
 
 #default page that loads when first going to the site
-@app.route('/')
-def index():
-    blogs = Blog.query.order_by(Blog.id.desc()).all()
-    return render_template('main_blog.html', title = "Build a blog", blogs = blogs)
+#@app.route('/')
+#def index():
+    #blogs = Blog.query.order_by(Blog.id.desc()).all()
+    #return render_template('main_blog.html', title = "Build a blog", blogs = blogs)
 
 #main page in the site
 @app.route('/blog')
 def blogpage():
     #path to open a blog on a seperate page
     blog_id = request.args.get('id')
+    owner = User.query.filter_by(username = session['username']).first()
+
     if (blog_id):
         blog = Blog.query.get(blog_id)
         return render_template('single_blog.html', blog = blog)
     else:
         #displaying all created blogs in order of newest to oldest
-        blogs = Blog.query.order_by(Blog.id.desc()).all()
+        blogs = Blog.query.order_by(Blog.id.desc(), owner = owner).all()
         return render_template('main_blog.html' ,title = "Build a blog", blogs = blogs)
 
 #new blog post page
@@ -75,22 +84,22 @@ def newpost():
     if request.method == 'POST':
         title = request.form['blogtitle']
         body = request.form['blogtext']
+        owner = User.query.filter_by(username = session['username']).first
         title_error = ''
         body_error = ''
         error_count = 0
 
         #test to validate if anything was entered and return an error if not
         if title == '':
-            title_error = 'Please enter a title'
+            flash('Please enter a title', 'error')
             error_count += 1
         if body == '':
-            body_error = 'Please enter a blog'
+            flash('Please enter a blog', 'error')
             error_count += 1
         if error_count > 0:
-            return render_template('new_blog.html', title = 'New Blog Entry', title_error = title_error,
-                body_error = body_error)
+            return render_template('new_blog.html', title = 'New Blog Entry')
         #creating a new blog post
-        new_entry = Blog(title, body)
+        new_entry = Blog(title, body, owner)
     
         db.session.add(new_entry)
         db.session.commit()
@@ -100,7 +109,7 @@ def newpost():
         return render_template('new_blog.html', title = 'New Blog Entry')
 
 #new user signup
-@app.route('/signup', methods = ['POST', 'GET])
+@app.route('/signup', methods = ['POST', 'GET'])
 def signup():
     if request.method == 'POST':
         username = request.form['username']
